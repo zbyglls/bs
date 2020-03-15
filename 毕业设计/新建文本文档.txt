@@ -1,0 +1,4 @@
+基于Python和爬虫的招聘网站信息数据挖掘与分析毕业设计
+系统架构：python3.6 +Mysql
+使用python写的爬虫，爬取51job前程无忧、智联招聘等网站的大城市（北京、上海、深圳、广州、杭州、成都、武汉、长沙、珠海）Python编程岗位的职位数，并做简单的数据分析。
+https://sou.zhaopin.com/?p=5&jl=530&kw=python&kt=3
