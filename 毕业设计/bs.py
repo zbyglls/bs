@@ -3,6 +3,7 @@ import pymysql
 import re
 from bs4 import BeautifulSoup
 
+
 def getResponse(area, url):
     data = {
         'keyword': 'Python',
@@ -16,39 +17,48 @@ def getResponse(area, url):
     else:
         return rsp.text
 
+
 def getInfo(content, bar):
     soup = BeautifulSoup(content, 'lxml')
-    #获取职位
+    # 获取职位
     position = soup.select('#resultList > div:nth-child({}) > p > span > a'.format(bar))[0].string.strip()
-    #获取公司
+    # 获取公司
     company = soup.select('#resultList > div:nth-child({}) > span.t2 > a'.format(bar))[0].string.strip()
-    #获取工作地点
+    # 获取工作地点
     location = soup.select('#resultList > div:nth-child({}) > span.t3'.format(bar))[0].string.strip()
-    #获取薪资
+    # 获取薪资
     salary = soup.select('#resultList > div:nth-child({}) > span.t4'.format(bar))[0].string
     if type(salary) == type(None):
         salary = ''
     else:
         salary = salary.strip()
     return position, company, location, salary
+
+
 def nextUrl(content):
     soup = BeautifulSoup(content, 'lxml')
     next_url = soup.select('#rtNext')[0].attrs['href']
     return next_url
+
+
 def getPages(content):
     soup = BeautifulSoup(content, 'lxml')
-    #获取总页数
+    # 获取总页数
     pages = int(re.compile(r'\d+').search(soup.select('#resultList > div.dw_page > div > div > div > span:nth-child(3)')[0].string).group())
     return pages
+
+
 def getBars(content):
     soup = BeautifulSoup(content, 'lxml')
-    #获取当前页面总条数
+    # 获取当前页面总条数
     bars = int((len(soup.find_all(name='span', attrs={'class':'t5'}, recursive=True))) - 1)
     return bars
+
+
 def save(message):
     try:
         db = pymysql.connect(host='127.0.0.1', user='root', passwd='123456', db='spiderdb', port=3306)
-        #创建游标
+        # 创建游标
         cursor = db.cursor()
         message = list(message)
         if message[0] != '职位名':
@@ -70,13 +80,14 @@ def save(message):
                 message[2] = '武汉'
             elif '长沙' in message[2]:
                 message[2] = '长沙'
-            #使用execute()执行sql语句
+            # 使用execute()执行sql语句
             sql = 'insert into message values("{0}","{1}","{2}","{3}")'.format(message[0], message[1], message[2], message[3])
             cursor.execute(sql)
             cursor.connection.commit()
         db.close()
     except Exception as e:
         print(e)
+
 
 if __name__ == "__main__":
     url = 'https://search.51job.com/jobsearch/search_result.php?'

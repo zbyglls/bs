@@ -1,5 +1,8 @@
 import pymysql
 import re
+import matplotlib.pyplot as plt
+from pylab import *
+mpl.rcParams['font.sans-serif'] = ['SimHei']
 
 
 def getData():
@@ -18,7 +21,7 @@ def getData():
         return rst
 
 
-def func(data):
+def process(data):
     data = list(data)
     # 去除不完整数据
     new_data = []
@@ -35,36 +38,81 @@ def func(data):
             data.append(list(item))
     # 规范薪资信息
     for item in data:
-        if '万' in item[3] and '年' in item[3]:
-            if len(re.findall(re.compile('\d*\.?\d+'), item[3])) == 2:
-                low_salary = re.findall(re.compile('\d*\.?\d+'), item[3])[0]
-                high_salary = re.findall(re.compile('\d?\.?\d+'), item[3])[1]
-                low_salary = float(low_salary) / 12
-                high_salary = float(high_salary) / 12
+        salary = re.findall(re.compile('\d*\.?\d+'), item[3])
+        if len(salary) == 2:
+            if '万' in item[3] and '年' in item[3]:
+                low_salary = format(float(salary[0]) / 12, '.1f')
+                high_salary = format(float(salary[1]) / 12, '.1f')
                 item[3] ='{0}-{1}万/月'.format(low_salary,high_salary)
-            else:
-                salary = re.findall(re.compile('\d*\.?\d+'), item[3])[0]
-                salary = float(salary) / 12
+            elif '千' in item[3]:
+                    low_salary = format(float(salary[0]) / 10, '.1f')
+                    high_salary = format(float(salary[1]) / 10, '.1f')
+                    item[3] = '{0}-{1}万/月'.format(low_salary, high_salary)
+        else:
+            if '万' in item[3] and '年' in item[3]:
+                salary = format(float(salary[0]) / 12, '.1f')
                 item[3] = '{}万/月'.format(salary)
-        elif '千' in item[3]:
-            if len(re.findall(re.compile('\d*\.?\d+'), item[3])) == 2:
-                low_salary = re.findall(re.compile('\d*\.?\d+'), item[3])[0]
-                high_salary = re.findall(re.compile('\d?\.?\d+'), item[3])[1]
-                low_salary = float(low_salary) / 10
-                high_salary = float(high_salary) / 10
-                item[3] = '{0}-{1}万/月'.format(low_salary, high_salary)
-            else:
-                salary = re.findall(re.compile('\d*\.?\d+'), item[3])[0]
-                salary = float(salary) / 10
+            elif '千' in item[3]:
+                salary = format(float(salary[0]) / 10, '.1f')
                 item[3] = '{}万/月'.format(salary)
-        elif '天' in item[3]:
-            salary = re.findall(re.compile('\d*\.?\d+'), item[3])[0]
-            salary = float(salary) * 21 / 10  #每月工作21天
-            item[3] = '{}万/月'.format(salary)
+            elif '天' in item[3]:
+                salary = format(float(salary[0]) * 21 / 10000, '.1f')  # 每月工作21天
+                item[3] = '{}万/月'.format(salary)
 
     return data
 
 
-rst = func(getData())
-for i in rst:
-    print(i)
+def func(data):
+    position = []
+    location = []
+    salary = []
+    for item in data:
+        if item[2] != '异地招聘':
+            location.append(item[2])
+            if item[2] == '上海':
+                position.append(item[0])
+                salary.append(item[3])
+    return position, location, salary
+
+
+def area(data):
+    areadict = {}
+    for item in data:
+        areadict[item] = data.count(item)
+    labels = []
+    fracs = []
+
+    explode = [0.01, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+    for k, v in areadict.items():
+        labels.append(k)
+        fracs.append(v)
+    print(labels)
+    plt.axes(aspect=1)
+    # labels标签参数,x是对应的数据列表,autopct显示每一个区域占的比例,explode突出显示某一块,shadow阴影
+    plt.pie(x=fracs, labels=labels, autopct="%.2f%%", explode=explode, shadow=True)
+    plt.savefig('饼图.png')
+    plt.show()
+
+
+def sal(data):
+    salarylist = []
+    for item in data:
+        salary = re.findall(re.compile('\d*\.?\d+'), item)
+        salarylist.append(float(salary[0]))
+    salarylist.sort()
+    plt.hist(salarylist, 30, width=0.3)
+    plt.xlabel('Salary/(万/月)')
+    plt.ylabel('count')
+    plt.xlim(0, 6)  # 设置x轴分布范围
+    plt.savefig('直方图.png')
+    plt.show()
+
+
+def occup(data):
+    pass
+
+
+if __name__ == '__main__':
+    position, location, salary = func(process(getData()))
+    #area(location)
+    #sal(salary)
