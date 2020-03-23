@@ -80,19 +80,7 @@ def save(message):
 
 if __name__ == "__main__":
     url = 'https://search.51job.com/jobsearch/search_result.php?'
-    '''
-    area = {
-        '北京': '010000',
-        '上海': '020000',
-        '广州': '030200',
-        '珠海': '030500',
-        '深圳': '040000',
-        '杭州': '080200',
-        '成都': '090200',
-        '武汉': '180200',
-        '长沙': '190200'
-    }
-    '''
+
     area = input('输入地区代码：')
     content = getResponse(area, url)
     pages = getPages(content)
@@ -105,3 +93,16 @@ if __name__ == "__main__":
             url = nextUrl(content)
             content = getResponse(area, url)
 
+'''
+area = {
+    '北京': '010000',
+    '上海': '020000',
+    '广州': '030200',
+    '珠海': '030500',
+    '深圳': '040000',
+    '杭州': '080200',
+    '成都': '090200',
+    '武汉': '180200',
+    '长沙': '190200'
+}
+'''
