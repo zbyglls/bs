@@ -113,7 +113,7 @@ def occup(data):
     jieba.load_userdict("userdict.txt")
     seglist = []
     for item in data:
-        seg_list = jieba.cut(item, cut_all=False) # 搜索引擎模式
+        seg_list = jieba.cut(item, cut_all=False) # 精确模式
         for i in seg_list:
             if len(i) > 3:
                 if re.compile(r'Python?[\u4e00-\u9fa5]+|[\u4e00-\u9fa5]|Python').match(i):
