@@ -91,7 +91,6 @@ def save(message):
 
 if __name__ == "__main__":
     url = 'https://search.51job.com/jobsearch/search_result.php?'
-
     area = input('输入地区代码：')
     content = getResponse(area, url)
     pages = getPages(content)

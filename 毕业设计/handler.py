@@ -1,7 +1,10 @@
 import pymysql
 import re
+import jieba
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 from pylab import *
+import imageio
 mpl.rcParams['font.sans-serif'] = ['SimHei']
 
 
@@ -91,7 +94,6 @@ def area(data):
     # labels标签参数,x是对应的数据列表,autopct显示每一个区域占的比例,explode突出显示某一块,shadow阴影
     plt.pie(x=fracs, labels=labels, autopct="%.2f%%", explode=explode, shadow=True)
     plt.savefig('饼图.png')
-    plt.show()
 
 
 def sal(data):
@@ -105,14 +107,29 @@ def sal(data):
     plt.ylabel('count')
     plt.xlim(0, 6)  # 设置x轴分布范围
     plt.savefig('直方图.png')
-    plt.show()
 
 
 def occup(data):
-    pass
+    jieba.load_userdict("userdict.txt")
+    seglist = []
+    for item in data:
+        seg_list = jieba.cut(item, cut_all=False) # 搜索引擎模式
+        for i in seg_list:
+            if len(i) > 3:
+                if re.compile(r'Python?[\u4e00-\u9fa5]+|[\u4e00-\u9fa5]|Python').match(i):
+                    seglist.append(i)
+    wordcount = {}
+    for item in seglist:
+        wordcount[item] = seglist.count(item)
+    for item in list(wordcount.keys()):
+        if wordcount[item] <= 2:
+            del wordcount[item]
+    word = WordCloud(font_path='msyh.ttc', background_color='white', height=480, width=640).generate_from_frequencies(wordcount)# 产生词云
+    word.to_file('cloud.png')  # 保存图片
 
 
 if __name__ == '__main__':
     position, location, salary = func(process(getData()))
-    #area(location)
-    #sal(salary)
+    area(location)
+    sal(salary)
+    occup(position)
