@@ -32,7 +32,23 @@ def getInfo(content, bar):
         salary = ''
     else:
         salary = salary.strip()
-    return position, company, location, salary
+    url = soup.select('#resultList > div:nth-child({}) > p > span > a'.format(bar))[0].attrs['href']
+    information = getMes(url)
+    return position, company, location, salary, information
+
+
+def getMes(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+    }
+    rsp = requests.get(url, headers=headers)
+    rsp.encoding = 'gbk'
+    soup = BeautifulSoup(rsp.text, 'lxml')
+    info = str(soup.select('body > div.tCompanyPage > div.tCompany_center.clearfix > div.tCompany_main > div:nth-child(1) > div'))
+    pattern = re.compile(r'[\w/+、，\u4e00-\u9fa5]{8,}')
+    info = pattern.findall(info)
+    information = ''.join(info)
+    return information
 
 
 def nextUrl(content):
@@ -81,12 +97,13 @@ def save(message):
             elif '长沙' in message[2]:
                 message[2] = '长沙'
             # 使用execute()执行sql语句
-            sql = 'insert into message values("{0}","{1}","{2}","{3}")'.format(message[0], message[1], message[2], message[3])
+            sql = 'insert into message values("{0}","{1}","{2}","{3}","{4}")'.format(message[0], message[1], message[2], message[3], message[4])
             cursor.execute(sql)
             cursor.connection.commit()
         db.close()
     except Exception as e:
         print(e)
+    return None
 
 
 if __name__ == "__main__":

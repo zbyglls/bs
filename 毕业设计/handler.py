@@ -4,7 +4,6 @@ import jieba
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from pylab import *
-import imageio
 mpl.rcParams['font.sans-serif'] = ['SimHei']
 
 
@@ -69,19 +68,19 @@ def func(data):
     position = []
     location = []
     salary = []
+    information = []
     for item in data:
         if item[2] != '异地招聘':
             location.append(item[2])
+            information.append(item[4])
             if item[2] == '上海':
                 position.append(item[0])
                 salary.append(item[3])
-    return position, location, salary
+    return position, location, salary, information
 
 
 def area(data):
-    areadict = {}
-    for item in data:
-        areadict[item] = data.count(item)
+    areadict = {item:data.count(item) for item in data}
     labels = []
     fracs = []
 
@@ -94,6 +93,7 @@ def area(data):
     # labels标签参数,x是对应的数据列表,autopct显示每一个区域占的比例,explode突出显示某一块,shadow阴影
     plt.pie(x=fracs, labels=labels, autopct="%.2f%%", explode=explode, shadow=True)
     plt.savefig('饼图.png')
+    return None
 
 
 def sal(data):
@@ -107,6 +107,7 @@ def sal(data):
     plt.ylabel('count')
     plt.xlim(0, 6)  # 设置x轴分布范围
     plt.savefig('直方图.png')
+    return None
 
 
 def occup(data):
@@ -118,18 +119,36 @@ def occup(data):
             if len(i) > 3:
                 if re.compile(r'Python?[\u4e00-\u9fa5]+|[\u4e00-\u9fa5]|Python').match(i):
                     seglist.append(i)
-    wordcount = {}
-    for item in seglist:
-        wordcount[item] = seglist.count(item)
+    wordcount = {item:seglist.count(item) for item in seglist}
     for item in list(wordcount.keys()):
         if wordcount[item] <= 2:
             del wordcount[item]
     word = WordCloud(font_path='msyh.ttc', background_color='white', height=480, width=640).generate_from_frequencies(wordcount)# 产生词云
     word.to_file('cloud.png')  # 保存图片
+    return None
+
+
+def duties(data):
+    seglist = []
+    for item in data:
+        seg_list = jieba.cut(item, cut_all=False)
+        for i in seg_list:
+            if len(i) > 1:
+                if re.compile(r'[\w\u4e00-\u9fa5]').match(i):
+                    seglist.append(i)
+    wordcount = {item:seglist.count(item) for item in seglist}
+    with open('data.txt', 'w') as f:
+        f.write(str(wordcount))
+    with open('data.txt','r') as f:
+        word = eval(f.read())
+    word = WordCloud(font_path='msyh.ttc', background_color='white').generate_from_frequencies(word)
+    word.to_file('cloud1.png')
+    return None
 
 
 if __name__ == '__main__':
-    position, location, salary = func(process(getData()))
+    position, location, salary, information = func(process(getData()))
     area(location)
     sal(salary)
     occup(position)
+    duties(information)
